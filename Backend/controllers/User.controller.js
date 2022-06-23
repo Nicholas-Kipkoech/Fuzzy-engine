@@ -9,13 +9,24 @@ exports.createUser = async (req, res) => {
       password,
     });
     if (!newuser) {
-      return res.status(404).json({ message: "user not created!!" });
+      return res.status(404).json({ message: "user not found!!" });
+    } else {
+      newuser.save();
     }
-    newuser.save();
     res.status(200).json({ message: "user created succesfully!", newuser });
   } catch (error) {
     res.status(500).json({ error });
   }
+};
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findOneAndDelete({ _id: req.params.id }).exec();
+    if (!user) {
+      return res.status(404).json({ message: "user not found!!" });
+    } else {
+      return res.status(200).json({ message: "user deleted!!" });
+    }
+  } catch (error) {}
 };
 exports.getUsers = async (req, res) => {
   try {
@@ -31,7 +42,7 @@ exports.getUsers = async (req, res) => {
 };
 exports.getUsersById = async (req, res) => {
   try {
-    const user = await User.findOne({ ...req.params._id }).exec();
+    const user = await User.findOne({ ...req._id }).exec();
     if (!user) {
       res.status(404).json({ message: "no user found!!" });
     } else {
@@ -39,5 +50,21 @@ exports.getUsersById = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error });
+  }
+};
+exports.userLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({
+      email: email,
+      password: password,
+    }).exec();
+    if (!user) {
+      return res.status(404).json({ message: "Wrong email or password!" });
+    } else {
+      return res.status(200).json({ message: "Logged in!", user: user });
+    }
+  } catch (error) {
+    return res.status(500).json({ error });
   }
 };
